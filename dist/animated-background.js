@@ -164,7 +164,7 @@ function currentConfig() {
   }
 
   if (Animated_Config) {
-    if (Animated_Config.entity || Animated_Config.default_url) {
+    if (Animated_Config.entity || Animated_Config.default_url || Animated_Config.default_url_entity) {
       return_config = Animated_Config;
     }
 
@@ -235,7 +235,7 @@ function currentConfig() {
 function enabled() {
   var temp_enabled = false;
   if (Animated_Config) {
-    if (Animated_Config.default_url || Animated_Config.entity || Animated_Config.views || Animated_Config.groups) {
+    if (Animated_Config.default_url || Animated_Config.default_url_entity || Animated_Config.entity || Animated_Config.views || Animated_Config.groups) {
       temp_enabled = true;
     }
   }
@@ -334,6 +334,9 @@ function renderBackgroundHTML() {
   //rerender background if entity has changed (to avoid no background refresh if the new entity happens to have the same state)
   if (current_config && current_config.entity && Previous_Entity != current_config.entity) {
     Previous_State = null;
+  }
+  if (current_config && current_config.default_url_entity && Previous_DefaultUrlEntity != current_config.default_url_entity) {
+    Previous_DefaultUrlState = null;
   }
 
   if (current_config != Previous_Config) {
