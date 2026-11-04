@@ -391,30 +391,36 @@ function renderBackgroundHTML() {
     else if (current_config.default_url_entity) {
       // TODO: START
       Previous_DefaultUrlEntity = current_config.default_url_entity;
-      var current_state = getEntityState(current_config.default_url_entity);
 
-      if (Previous_DefaultUrlState != current_state) {
-        View_Loaded = false;
-        DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is now " + current_state, true);
+      var entity = Haobj && Haobj.states[current_config.default_url_entity];
+      var current_state;
 
-        try {
-          // try to parse the state value as JSON
-          // if it's an array, pick a random entry
-          // if it doesn't parse as an array, fallback to the original state value
-          var current_state_obj = JSON.parse(current_state)
-          state_url = Array.isArray(current_state_obj)
-            ? current_state_obj[randomIntFromInterval(0, current_state_obj.length - 1)]
-            : current_state;
-        } catch(e) {
-          // invalid json, assume it is a string
-          DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is not JSON", true);
-          state_url = current_state;
+      // pull the state from the attribute, if set in the config
+      // otherwise use the entity state
+      if (entity) {
+        if (current_config.default_url_entity_attr) {
+          current_state = entity.attributes[current_config.default_url_entity_attr];
+        } else {
+          current_state = entity.state;
         }
       }
 
-      Previous_DefaultUrlState = current_state;
-      if (Haobj && Haobj.states[current_config.default_url_entity]) {
-        Previous_DefaultUrl_Last_Updated = Haobj.states[current_config.default_url_entity].last_updated;
+      var current_state_json = JSON.stringify(current_state)
+
+      if (Previous_DefaultUrlState != current_state_json) {
+        View_Loaded = false;
+        DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is now " + current_state, true);
+
+        // if the state was an array, get a random item
+        // otherwise use it's value directly
+        state_url = Array.isArray(current_state)
+          ? current_state[randomIntFromInterval(0, current_state.length - 1)]
+          : current_state;
+      }
+
+      Previous_DefaultUrlState = current_state_json;
+      if (entity) {
+        Previous_DefaultUrl_Last_Updated = entity.last_updated;
       }
     }
     else {
