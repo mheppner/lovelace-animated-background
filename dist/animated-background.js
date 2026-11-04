@@ -393,24 +393,26 @@ function renderBackgroundHTML() {
       Previous_DefaultUrlEntity = current_config.default_url_entity;
       var current_state = getEntityState(current_config.default_url_entity);
 
-      if (Array.isArray(current_state)) {
-        // current is an array
-        // if previous was not an array
-        // or if the previous does not equal the current
-        if (!Array.isArray(Previous_DefaultUrlState) || !areSetsEqual(new Set(Previous_DefaultUrlState), new Set(current_state))) {
-          View_Loaded = false;
-          DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is now an array with: " + current_state, true);
-          state_url = current_state[randomIntFromInterval(0, current_state.length - 1)];
-        }
-      } else {
-        if (Previous_DefaultUrlState != current_state) {
-          View_Loaded = false;
-          DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is now: " + current_state, true);
+      if (Previous_DefaultUrlState != current_state) {
+        View_Loaded = false;
+        DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is now " + current_state, true);
+
+        try {
+          // try to parse the state value as JSON
+          // if it's an array, pick a random entry
+          // if it doesn't parse as an array, fallback to the original state value
+          var current_state_obj = JSON.parse(current_state)
+          state_url = Array.isArray(current_state_obj)
+            ? current_state_obj[randomIntFromInterval(0, current_state_obj.length - 1)]
+            : current_state;
+        } catch(e) {
+          // invalid json, assume it is a string
+          DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is not JSON", true);
           state_url = current_state;
         }
       }
 
-      Previous_DefaultUrlEntity = current_state;
+      Previous_DefaultUrlState = current_state;
       if (Haobj && Haobj.states[current_config.default_url_entity]) {
         Previous_DefaultUrl_Last_Updated = Haobj.states[current_config.default_url_entity].last_updated;
       }
