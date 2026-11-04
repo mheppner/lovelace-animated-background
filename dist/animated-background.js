@@ -23,10 +23,13 @@ var Opacity = 99;
 
 //state tracking variables
 let Previous_State;
+let Previous_DefaultUrlState;
 let Previous_Entity;
+let Previous_DefaultUrlEntity;
 let Previous_Url;
 let Previous_Config;
 let Previous_Last_Updated;
+let Previous_DefaultUrl_Last_Updated;
 
 function STATUS_MESSAGE(message, force) {
   if (!Debug_Mode) {
@@ -55,6 +58,10 @@ function randomIntFromInterval(min, max) { // min and max included
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+function areSetsEqual(a, b) {
+  return a.size === b.size && [...a].every(x => b.has(x));
+}
+
 //reset all DOM variables
 function getVars() {
   Root = document.querySelector("home-assistant");
@@ -63,7 +70,7 @@ function getVars() {
   Root = Root && Root.querySelector("home-assistant-main");
   Root = Root && Root.shadowRoot;
   Root = Root && Root.querySelector("app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver");
-  
+
   Root = (Root && Root.shadowRoot) || Root;
   Root = Root && Root.querySelector("ha-panel-lovelace");
   if (Root) {
@@ -155,7 +162,7 @@ function currentConfig() {
   if (current_view_path == undefined) {
     return return_config;
   }
-  
+
   if (Animated_Config) {
     if (Animated_Config.entity || Animated_Config.default_url) {
       return_config = Animated_Config;
@@ -378,6 +385,33 @@ function renderBackgroundHTML() {
         }
       }
     }
+    else if (current_config.default_url_entity) {
+      // TODO: START
+      Previous_DefaultUrlEntity = current_config.default_url_entity;
+      var current_state = getEntityState(current_config.default_url_entity);
+
+      if (Array.isArray(current_state)) {
+        // current is an array
+        // if previous was not an array
+        // or if the previous does not equal the current
+        if (!Array.isArray(Previous_DefaultUrlState) || !areSetsEqual(new Set(Previous_DefaultUrlState), new Set(current_state))) {
+          View_Loaded = false;
+          DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is now an array with: " + current_state, true);
+          state_url = current_state[randomIntFromInterval(0, current_state.length - 1)];
+        }
+      } else {
+        if (Previous_DefaultUrlState != current_state) {
+          View_Loaded = false;
+          DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is now: " + current_state, true);
+          state_url = current_state;
+        }
+      }
+
+      Previous_DefaultUrlEntity = current_state;
+      if (Haobj && Haobj.states[current_config.default_url_entity]) {
+        Previous_DefaultUrl_Last_Updated = Haobj.states[current_config.default_url_entity].last_updated;
+      }
+    }
     else {
       var url = current_config.default_url;
       if (url) {
@@ -484,7 +518,7 @@ function renderBackgroundHTML() {
           margin: 0;
           position: relative;
         }
-    
+
         video {
           min-width: 100%;
           min-height: 100%;
@@ -495,7 +529,7 @@ function renderBackgroundHTML() {
           left: 50%;
           transform: translate(-50%, -50%);
         }
-        
+
         img {
           min-width: 100%;
           min-height: 100%;
@@ -508,7 +542,7 @@ function renderBackgroundHTML() {
         }
         ${overlay_style}
       </style>
-    </head>  
+    </head>
     <body id='source-body'>
     ${doc_body}
     ${overlay_html}
