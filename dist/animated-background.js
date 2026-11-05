@@ -1616,7 +1616,7 @@ if (window.__animatedBackgroundLoaded) {
         if (form.entity && !rowsToStateMap(form.states)) {
           warnings.push("An entity is set but no state URLs are configured, so the default URL will always be used.");
         }
-        if (!form.entity && !splitLines(form.default_url).length) {
+        if (!form.entity && (!splitLines(form.default_url).length || !form.default_url_entity)) {
           warnings.push("No default URL and no entity configured.");
         }
         var opacity = parseInt(form.opacity, 10);
