@@ -29,7 +29,6 @@ let Previous_DefaultUrlEntity;
 let Previous_Url;
 let Previous_Config;
 let Previous_Last_Updated;
-let Previous_DefaultUrl_Last_Updated;
 
 function STATUS_MESSAGE(message, force) {
   if (!Debug_Mode) {
@@ -420,7 +419,7 @@ function renderBackgroundHTML() {
 
       Previous_DefaultUrlState = current_state_json;
       if (entity) {
-        Previous_DefaultUrl_Last_Updated = entity.last_updated;
+        Previous_Last_Updated = entity.last_updated;
       }
     }
     else {
@@ -1749,7 +1748,6 @@ if (window.__animatedBackgroundLoaded) {
           Previous_Entity = null;
           Previous_DefaultUrlEntity = null;
           Previous_DefaultUrlState = null;
-          Previous_DefaultUrl_Last_Updated = null;
           Previous_Last_Updated = null;
           clearMemes();
           clearRefreshTimer();
