@@ -2041,14 +2041,15 @@ if (window.__animatedBackgroundLoaded) {
             "One URL per line. Multiple lines = random choice",
             function (v) { self._update(function (f) { f.default_url = v; }); }),
           "One URL per line. Multiple lines = a random URL is picked each refresh."));
+
         wrap.appendChild(this._row("Default URL entity",
-          this._entityPicker(sf.default_url_entity, function (v) { api.patch({ entity: v }); })), "abe-default-url-entity-list");
+          this._entityPicker(form.default_url_entity, function (v) { api.patch({ entity: v }); })), "abe-default-url-entity-list");
         var hass = this._hass;
-        var entityState = hass && sf.default_url_entity && hass.states[sf.default_url_entity]
-          ? hass.states[sf.default_url_entity].state : "";
+        var entityState = hass && form.default_url_entity && hass.states[form.default_url_entity]
+          ? hass.states[form.default_url_entity].state : "";
         if (entityState !== "") {
           wrap.appendChild(h("div", { class: "hint" },
-            "Current state of " + sf.default_url_entity + ": " + entityState));
+            "Current state of " + form.default_url_entity + ": " + entityState));
         }
         wrap.appendChild(this._row("Background override",
           this._textField(form.background, {
