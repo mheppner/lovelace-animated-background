@@ -2043,14 +2043,28 @@ if (window.__animatedBackgroundLoaded) {
           "One URL per line. Multiple lines = a random URL is picked each refresh."));
 
         wrap.appendChild(this._row("Default URL entity",
-          this._entityPicker(form.default_url_entity, function (v) { api.patch({ entity: v }); })), "abe-default-url-entity-list");
+          this._entityPicker(form.default_url_entity, function (v) { self._update(function (f) { f.default_url_entity = v })}, "abe-default-url-entity-list")));
+
+        wrap.appendChild(this._row("Default URL entity attribute",
+          this._textField(form.default_url_entity_attr, { placeholder: "empty = ignored" },
+            function (v) { self._update(function (f) { f.default_url_entity_attr = v }); }),
+          "Empty = ignored."));
+
         var hass = this._hass;
-        var entityState = hass && form.default_url_entity && hass.states[form.default_url_entity]
-          ? hass.states[form.default_url_entity].state : "";
+        var entity = hass && form.default_url_entity && hass.states[form.default_url_entity];
+        var entityState = "";
+        if (entity) {
+          if (form.default_url_entity_attr) {
+            entityState = entity.attributes[form.default_url_entity_attr] || "";
+          } else {
+            entityState = entity.state;
+          }
+        }
         if (entityState !== "") {
           wrap.appendChild(h("div", { class: "hint" },
             "Current state of " + form.default_url_entity + ": " + entityState));
         }
+
         wrap.appendChild(this._row("Background override",
           this._textField(form.background, {
             placeholder: "'transparent' or any CSS background"
