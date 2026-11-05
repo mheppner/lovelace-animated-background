@@ -1053,6 +1053,8 @@ if (window.__animatedBackgroundLoaded) {
     return {
       entity: cfg.entity || "",
       default_url: urlValueToLines(cfg.default_url),
+      default_url_entity: cfg.default_url_entity || "",
+      default_url_entity_attr: cfg.default_url_entity_attr || "",
       states: stateMapToRows(cfg.state_url),
       background: cfg.background != null ? String(cfg.background) : "",
       transparent_panel: !!cfg.transparent_panel,
@@ -1209,6 +1211,8 @@ if (window.__animatedBackgroundLoaded) {
     return {
       enabled: cfg.enabled !== false,
       default_url: urlValueToLines(cfg.default_url),
+      default_url_entity: cfg.default_url_entity || "",
+      default_url_entity_attr: cfg.default_url_entity_attr || "",
       background: cfg.background != null ? String(cfg.background) : "",
       entity: cfg.entity || "",
       states: stateMapToRows(cfg.state_url),
@@ -1252,6 +1256,8 @@ if (window.__animatedBackgroundLoaded) {
     else cfg.enabled = false;
 
     setOrRemove(cfg, "default_url", linesToUrlValue(form.default_url));
+    setOrRemove(cfg, "default_url_entity", String(form.default_url_entity || "").trim() || undefined);
+    setOrRemove(cfg, "default_url_entity_attr", String(form.default_url_entity_attr || "").trim() || undefined);
     setOrRemove(cfg, "entity", String(form.entity || "").trim() || undefined);
     setOrRemove(cfg, "state_url", rowsToStateMap(form.states));
     setOrRemove(cfg, "background", String(form.background || "").trim() || undefined);
