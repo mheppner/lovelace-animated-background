@@ -1741,6 +1741,9 @@ if (window.__animatedBackgroundLoaded) {
           Previous_Url = null;
           Previous_State = null;
           Previous_Entity = null;
+          Previous_DefaultUrlEntity = null;
+          Previous_DefaultUrlState = null;
+          Previous_DefaultUrl_Last_Updated = null;
           Previous_Last_Updated = null;
           clearMemes();
           clearRefreshTimer();
@@ -1867,7 +1870,7 @@ if (window.__animatedBackgroundLoaded) {
         return native;
       }
 
-      _entityPicker(value, onchange) {
+      _entityPicker(value, onchange, listId = "abe-entity-list") {
         var self = this;
         var HaPicker = customElements.get("ha-entity-picker");
         if (HaPicker && this._hass) {
@@ -1880,7 +1883,6 @@ if (window.__animatedBackgroundLoaded) {
           });
           return picker;
         }
-        var listId = "abe-entity-list";
         var entities = this._hass ? Object.keys(this._hass.states).sort() : [];
         var datalist = h("datalist", { id: listId },
           entities.map(function (id) { return h("option", { value: id }); }));
@@ -1927,7 +1929,7 @@ if (window.__animatedBackgroundLoaded) {
 
 
           wrap.appendChild(this._row("Default URL entity",
-            this._entityPicker(sf.default_url_entity, function (v) { api.patch({ entity: v }); })));
+            this._entityPicker(sf.default_url_entity, function (v) { api.patch({ entity: v }); })), "abe-default-url-entity-list");
           var hass = this._hass;
           var entityState = hass && sf.default_url_entity && hass.states[sf.default_url_entity]
             ? hass.states[sf.default_url_entity].state : "";
@@ -2039,6 +2041,15 @@ if (window.__animatedBackgroundLoaded) {
             "One URL per line. Multiple lines = random choice",
             function (v) { self._update(function (f) { f.default_url = v; }); }),
           "One URL per line. Multiple lines = a random URL is picked each refresh."));
+        wrap.appendChild(this._row("Default URL entity",
+          this._entityPicker(sf.default_url_entity, function (v) { api.patch({ entity: v }); })), "abe-default-url-entity-list");
+        var hass = this._hass;
+        var entityState = hass && sf.default_url_entity && hass.states[sf.default_url_entity]
+          ? hass.states[sf.default_url_entity].state : "";
+        if (entityState !== "") {
+          wrap.appendChild(h("div", { class: "hint" },
+            "Current state of " + sf.default_url_entity + ": " + entityState));
+        }
         wrap.appendChild(this._row("Background override",
           this._textField(form.background, {
             placeholder: "'transparent' or any CSS background"
