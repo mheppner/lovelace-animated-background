@@ -26,6 +26,7 @@ let Previous_State;
 let Previous_DefaultUrlState;
 let Previous_Entity;
 let Previous_DefaultUrlEntity;
+let Previous_DefaultUrl_Last_Updated;
 let Previous_Url;
 let Previous_Config;
 let Previous_Last_Updated;
@@ -86,6 +87,29 @@ function getVars() {
     }
     View = Root.shadowRoot.getElementById("view");
   }
+}
+
+function getDefaultUrlEntity(current_config) {
+  return Haobj && Haobj.states[current_config.default_url_entity];
+}
+
+function getDefaultUrlEntityValue(current_config) {
+  var entity = getDefaultUrlEntity(current_config);
+  var current_state;
+
+  if (entity) {
+    if (current_config.default_url_entity_attr) {
+      current_state = entity.attributes[current_config.default_url_entity_attr] || [];
+    } else {
+      current_state = entity.state;
+    }
+  }
+  return current_state;
+}
+
+function getDefaultUrlEntityKey(current_config) {
+  var value = getDefaultUrlEntityValue(current_config);
+  return JSON.stringify(value);
 }
 
 //Mutation observer to set the background of views to transparent each time a new tab is selected
@@ -340,6 +364,7 @@ function renderBackgroundHTML() {
 
   if (current_config != Previous_Config) {
     Previous_State = null;
+    Previous_DefaultUrlState = null;
   }
 
   //get state of config object
@@ -388,25 +413,13 @@ function renderBackgroundHTML() {
       }
     }
     else if (current_config.default_url_entity) {
-      // TODO: START
       Previous_DefaultUrlEntity = current_config.default_url_entity;
 
-      var entity = Haobj && Haobj.states[current_config.default_url_entity];
-      var current_state;
+      var entity = getDefaultUrlEntity(current_config);
+      var current_state = getDefaultUrlEntityValue(current_config);
+      var current_state_key = getDefaultUrlEntityKey(current_config);
 
-      // pull the state from the attribute, if set in the config
-      // otherwise use the entity state
-      if (entity) {
-        if (current_config.default_url_entity_attr) {
-          current_state = entity.attributes[current_config.default_url_entity_attr];
-        } else {
-          current_state = entity.state;
-        }
-      }
-
-      var current_state_json = JSON.stringify(current_state)
-
-      if (Previous_DefaultUrlState != current_state_json) {
+      if (Previous_DefaultUrlState != current_state_key) {
         View_Loaded = false;
         DEBUG_MESSAGE("Configured default URL entity " + current_config.default_url_entity + " is now " + current_state, true);
 
@@ -417,9 +430,9 @@ function renderBackgroundHTML() {
           : current_state;
       }
 
-      Previous_DefaultUrlState = current_state_json;
+      Previous_DefaultUrlState = current_state_key;
       if (entity) {
-        Previous_Last_Updated = entity.last_updated;
+        Previous_DefaultUrl_Last_Updated = entity.last_updated;
       }
     }
     else {
@@ -471,6 +484,7 @@ function renderBackgroundHTML() {
     Refresh_Interval_Value = refresh_interval;
     Refresh_Timer = setInterval(function() {
       Previous_State = null;
+      Previous_DefaultUrlState = null;
       Previous_Url = null;
       renderBackgroundHTML();
     }, refresh_interval * 60 * 1000);
@@ -641,11 +655,15 @@ function renderBackgroundHTML() {
       Previous_Url = state_url;
     }
     else {
-      if (current_config.entity || (Previous_Url != state_url)) {
+      if (current_config.entity || current_config.default_url_entity || (Previous_Url != state_url)) {
         if (!current_config.entity) {
           STATUS_MESSAGE("Applying default background", true);
           Previous_Entity = null;
           Previous_State = null;
+        }
+        if (!current_config.default_url_entity) {
+          Previous_DefaultUrlEntity = null;
+          Previous_DefaultUrlState = null;
         }
         bg.srcdoc = source_doc;
         Previous_Url = state_url;
@@ -845,23 +863,44 @@ function run() {
         Haobj = value;
         var current_config = currentConfig();
         if (Loaded) {
-          if (current_config && current_config.entity) {
-            var current_state = getEntityState(current_config.entity);
-            var entity_data = Haobj.states[current_config.entity];
-            var current_last_updated = entity_data ? entity_data.last_updated : null;
-            var state_changed = Previous_State != current_state;
-            // root fallback here too: refresh_on_update set at root must
-            // reach group-driven views, not just root-config views
-            var refresh_on_update = current_config.refresh_on_update !== undefined
-              ? current_config.refresh_on_update
-              : (Animated_Config ? Animated_Config.refresh_on_update : false);
-            var force_refresh = refresh_on_update && current_last_updated !== Previous_Last_Updated;
-            if (state_changed || force_refresh) {
-              if (force_refresh && !state_changed) {
-                Previous_State = null;
+          if (current_config) {
+            if (current_config.default_url_entity) {
+              var entity = getDefaultUrlEntity(current_config);
+              var current_last_updated = entity ? entity.last_updated : null;
+              var current_state_key = getDefaultUrlEntityKey(current_config);
+              var state_changed = Previous_DefaultUrlState != current_state_key;
+              // root fallback here too: refresh_on_update set at root must
+              // reach group-driven views, not just root-config views
+              var refresh_on_update = current_config.refresh_on_update !== undefined
+                ? current_config.refresh_on_update
+                : (Animated_Config ? Animated_Config.refresh_on_update : false);
+              var force_refresh = refresh_on_update && current_last_updated !== Previous_DefaultUrl_Last_Updated;
+              if (state_changed || force_refresh) {
+                if (force_refresh && !state_changed) {
+                  Previous_DefaultUrlState = null;
+                }
+                clearMemes();
+                renderBackgroundHTML();
               }
-              clearMemes();
-              renderBackgroundHTML();
+            }
+            else if (current_config.entity) {
+              var current_state = getEntityState(current_config.entity);
+              var entity_data = Haobj.states[current_config.entity];
+              var current_last_updated = entity_data ? entity_data.last_updated : null;
+              var state_changed = Previous_State != current_state;
+              // root fallback here too: refresh_on_update set at root must
+              // reach group-driven views, not just root-config views
+              var refresh_on_update = current_config.refresh_on_update !== undefined
+                ? current_config.refresh_on_update
+                : (Animated_Config ? Animated_Config.refresh_on_update : false);
+              var force_refresh = refresh_on_update && current_last_updated !== Previous_Last_Updated;
+              if (state_changed || force_refresh) {
+                if (force_refresh && !state_changed) {
+                  Previous_State = null;
+                }
+                clearMemes();
+                renderBackgroundHTML();
+              }
             }
           }
 
@@ -919,6 +958,9 @@ function restart() {
     if (Hui) {
       Previous_Entity = null;
       Previous_State = null;
+      Previous_DefaultUrlEntity = null;
+      Previous_DefaultUrlState = null;
+      Previous_DefaultUrl_Last_Updated = null;
       Previous_Last_Updated = null;
       Loaded = false;
       View_Loaded = false;
@@ -1748,6 +1790,7 @@ if (window.__animatedBackgroundLoaded) {
           Previous_Entity = null;
           Previous_DefaultUrlEntity = null;
           Previous_DefaultUrlState = null;
+          Previous_DefaultUrl_Last_Updated = null;
           Previous_Last_Updated = null;
           clearMemes();
           clearRefreshTimer();
