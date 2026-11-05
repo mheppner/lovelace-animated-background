@@ -1924,6 +1924,17 @@ if (window.__animatedBackgroundLoaded) {
               "One URL per line. Multiple lines = random choice",
               function (v) { api.patch({ default_url: v }); }),
             "One URL per line. Multiple lines for a state = a random URL is picked each refresh. Set a state's URL to none to disable the background for that state."));
+
+
+          wrap.appendChild(this._row("Default URL entity",
+            this._entityPicker(sf.default_url_entity, function (v) { api.patch({ entity: v }); })));
+          var hass = this._hass;
+          var entityState = hass && sf.default_url_entity && hass.states[sf.default_url_entity]
+            ? hass.states[sf.default_url_entity].state : "";
+          if (entityState !== "") {
+            wrap.appendChild(h("div", { class: "hint" },
+              "Current state of " + sf.default_url_entity + ": " + entityState));
+          }
         }
 
         (sf.states || []).forEach(function (row, index) {

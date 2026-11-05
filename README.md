@@ -123,6 +123,8 @@ All options go under the `animated_background:` key:
 | Option | Type | Description |
 | --- | --- | --- |
 | `default_url` | string or list | Fallback video or image URL when no entity state matches. If a list is provided, a random entry is selected. |
+| `default_url_entity` | string | Home Assistant entity whose state drives the default_url. |
+| `default_url_entity_attr` | string | Home Assistant attribute from the default_url_entity that contains the state for the default_url. |
 | `enabled` | bool | Set to `false` to disable the plugin entirely. Default: `true`. |
 | `entity` | string | Home Assistant entity whose state drives background changes. |
 | `state_url` | map | Map of entity states to video or image URLs. Each value can be a single URL or a list. Set a state to `'none'` to disable the background for that state. Required if `entity` is set. |
